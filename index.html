@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#263c2e">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>Sourdough Baking Planner</title>
+<style>
+:root{--green:#263c2e;--sage:#e8eee4;--cream:#fbf8ef;--gold:#d4a94f;--ink:#242821;--muted:#697067;--line:#d9dfd3;--white:#fff}
+*{box-sizing:border-box}body{margin:0;background:var(--cream);color:var(--ink);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{background:var(--green);color:white;padding:28px 18px 24px}header .wrap,main{max-width:1050px;margin:auto}
+.kicker{text-transform:uppercase;letter-spacing:.13em;font-size:.75rem;color:#e6c77e;font-weight:700}
+h1{margin:.3rem 0;font-size:clamp(1.7rem,4vw,2.5rem);line-height:1.1}header p{margin:.6rem 0 0;color:#e0e8dc}
+main{padding:20px 16px 50px}.panel{background:white;border:1px solid var(--line);border-radius:16px;padding:18px;margin:0 0 18px;box-shadow:0 4px 18px #20302008}
+h2{font-size:1.15rem;margin:0 0 12px}.sub{color:var(--muted);font-size:.9rem;margin-top:-5px}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.field label{display:block;font-size:.82rem;color:var(--muted);font-weight:650;margin-bottom:5px}
+input,textarea,button{font:inherit}input,textarea{width:100%;padding:11px 12px;border:1px solid #cbd3c7;border-radius:9px;background:#fff;color:var(--ink)}input:focus,textarea:focus{outline:2px solid var(--gold);border-color:var(--gold)}
+.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px}button{border:0;border-radius:9px;padding:11px 15px;font-weight:700;cursor:pointer}.primary{background:var(--green);color:white}.secondary{background:var(--sage);color:var(--green)}.danger{background:#f7e7e2;color:#873d2c}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}.stat{background:var(--sage);border-radius:11px;padding:12px}.stat span{display:block;font-size:.75rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.04em}.stat strong{display:block;font-size:1.1rem;margin-top:4px}
+.ingredient-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.ingredient{display:grid;grid-template-columns:1fr 110px 30px;gap:8px;align-items:center}.ingredient input{padding:8px 9px}.remove{padding:7px;background:#f3f0e8;color:#625d50}
+.steps{display:flex;flex-direction:column;gap:10px}.step{border:1px solid var(--line);border-radius:12px;padding:13px;display:grid;grid-template-columns:42px minmax(0,1fr) auto;gap:12px;align-items:center}.number{width:36px;height:36px;display:grid;place-items:center;border-radius:50%;background:var(--sage);color:var(--green);font-weight:800}.step.active{border-color:var(--gold);background:#fffaf0}.step.done{opacity:.72}.step.done .number{background:var(--green);color:white}.step-name{font-weight:750}.timings{color:var(--muted);font-size:.88rem}.duration{width:95px;padding:7px}.status{font-size:.78rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);text-align:right}.step-buttons{display:flex;gap:6px;justify-content:flex-end;margin-top:7px}.step-buttons button{padding:7px 9px;font-size:.8rem}.countdown{font-size:1.3rem;font-weight:800;font-variant-numeric:tabular-nums;color:var(--green)}.timer-controls{display:flex;gap:7px;justify-content:flex-end;flex-wrap:wrap}.timer-controls button{padding:8px 10px;font-size:.82rem}
+.progress{height:7px;background:#e7eae2;border-radius:99px;overflow:hidden;margin-top:13px}.progress div{height:100%;background:var(--gold);width:0;transition:width .2s}
+.note{font-size:.88rem;color:var(--muted)}footer{text-align:center;color:var(--muted);font-size:.8rem;padding:0 15px 25px}
+@media(max-width:700px){.grid{grid-template-columns:1fr}.stats{grid-template-columns:1fr}.ingredient-list{grid-template-columns:1fr}.step{grid-template-columns:36px minmax(0,1fr)}.step .right{grid-column:2}.status{text-align:left}.timer-controls{justify-content:flex-start}.step-buttons{justify-content:flex-start}}
+@media print{header{background:#fff;color:#000;padding:10px 0}header p,.actions,.timer-controls,.remove,footer{display:none!important}body{background:#fff}.panel{box-shadow:none;break-inside:avoid}.step{break-inside:avoid}}\n</style>
+</head>
+<body>
+<header><div class="wrap"><div class="kicker">Your kitchen companion</div><h1>🥖 Sourdough Baking Planner</h1><p>Plan backwards from your bake time, follow each stage, and use the built-in timers to stay on track.</p></div></header>
+<main>
+<section class="panel">
+<h2>1. Plan your bake</h2>
+<div class="grid">
+<div class="field"><label for="bakeAt">Target time to put loaf in oven</label><input id="bakeAt" type="datetime-local" value="2026-10-10T09:30"></div>
+<div class="field"><label for="startAt">Start baking / first step at</label><input id="startAt" type="datetime-local"></div>
+<div class="field"><label for="ambient">Ambient temperature (°C)</label><input id="ambient" type="number" min="10" max="35" value="23"></div>
+</div>
+<div class="actions"><button class="primary" id="calculate">Calculate schedule</button><button class="secondary" id="useNow">Start from now</button><button class="secondary" id="reset">Reset progress</button></div>
+<div class="stats">
+<div class="stat"><span>Required start</span><strong id="requiredStart">—</strong></div>
+<div class="stat"><span>Total process</span><strong id="totalTime">—</strong></div>
+<div class="stat"><span>Active fermentation*</span><strong id="activeTime">5 hrs 30 mins</strong></div>
+</div><div class="progress"><div id="progressBar"></div></div>
+<p class="note">*Approximate active fermentation based on the supplied schedule, excluding the overnight fridge retard and oven stage. The times are planning estimates; dough behaviour and room temperature can change fermentation.</p>
+</section>
+<section class="panel">
+<h2>2. Ingredients</h2>
+<p class="sub">The supplied spreadsheet contains the schedule but no ingredient quantities, so add your recipe here. Your list stays in this page while it is open.</p>
+<div class="ingredient-list" id="ingredients"></div>
+<div class="actions"><button class="secondary" id="addIngredient">＋ Add ingredient</button><button class="secondary" id="print">Print / save as PDF</button></div>
+</section>
+<section class="panel">
+<h2>3. Baking timeline</h2>
+<p class="sub">Edit any duration in minutes, then recalculate. Start a stage timer when you begin; mark stages complete as you go.</p>
+<div class="steps" id="steps"></div>
+</section>
+</main>
+<footer>Made for a calmer bake. Keep this page open for the most reliable timer experience.</footer>
+<script>
+const defaultSteps=[
+["Mix ingredients",30],["Add salt & water",30],["1st stretch & fold",30],["2nd stretch & fold",30],["3rd stretch & fold",30],["4th stretch & fold",30],["Leave undisturbed",150],["Shape & rest",30],["Into fridge (cold retard)",840],["Into oven",45]
+];
+const defaultIngredients=[["Strong white bread flour","500 g"],["Water","350 g"],["Sourdough starter","100 g"],["Salt","10 g"]];
+let steps=defaultSteps.map(([name,mins])=>({name,mins,done:false,startedAt:null,remaining:null,endsAt:null}));
+let ingredients=defaultIngredients.map(([name,amount])=>({name,amount}));
+let interval=null;
+const $=id=>document.getElementById(id);
+const dateVal=d=>{const z=n=>String(n).padStart(2,"0");return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}T${z(d.getHours())}:${z(d.getMinutes())}`};
+const parseDate=id=>new Date($(id).value);
+function fmtDate(d){return d.toLocaleString([], {weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});}
+function fmtDur(ms){let m=Math.max(0,Math.round(ms/60000)),h=Math.floor(m/60),r=m%60;return h?`${h} hr${h===1?"":"s"} ${r} min${r===1?"":"s"}`:`${r} min${r===1?"":"s"}`;}
+function durationText(m){return `${Math.floor(m/60)?Math.floor(m/60)+"h ":""}${m%60?m%60+"m":""}`.trim()||"0m";}
+function schedule(){let bake=parseDate("bakeAt");if(isNaN(bake)){alert("Please choose a valid target bake time.");return;}
+ let sum=steps.reduce((a,s)=>a+s.mins,0), start=new Date(bake.getTime()-sum*60000);
+ // If start time is explicitly set, treat it as the first step and move the oven time to match the recipe duration.
+ const entered=$("startAt").value;
+ if(entered){start=parseDate("startAt");bake=new Date(start.getTime()+sum*60000);$("bakeAt").value=dateVal(bake);}
+ else $("startAt").value=dateVal(start);
+ let t=start;steps.forEach(s=>{s.start=new Date(t);t=new Date(t.getTime()+s.mins*60000);s.end=new Date(t);});
+ $("requiredStart").textContent=fmtDate(start);$("totalTime").textContent=fmtDur(sum*60000);renderSteps();renderStats();
+}
+function renderIngredients(){let root=$("ingredients");root.innerHTML="";ingredients.forEach((it,i)=>{let row=document.createElement("div");row.className="ingredient";
+ let name=document.createElement("input");name.value=it.name;name.setAttribute("aria-label","Ingredient name");name.placeholder="Ingredient";name.oninput=()=>it.name=name.value;
+ let amount=document.createElement("input");amount.value=it.amount;amount.setAttribute("aria-label","Ingredient amount");amount.placeholder="Amount";amount.oninput=()=>it.amount=amount.value;
+ let rm=document.createElement("button");rm.className="remove";rm.textContent="×";rm.title="Remove ingredient";rm.onclick=()=>{ingredients.splice(i,1);renderIngredients();};
+ row.append(name,amount,rm);root.append(row);});}
+function renderSteps(){let root=$("steps");root.innerHTML="";steps.forEach((s,i)=>{let card=document.createElement("div");card.className="step"+(s.done?" done":"")+(s.startedAt&&!s.done?" active":"");
+ let num=document.createElement("div");num.className="number";num.textContent=s.done?"✓":i+1;
+ let info=document.createElement("div");let nm=document.createElement("div");nm.className="step-name";nm.textContent=s.name;
+ let timing=document.createElement("div");timing.className="timings";timing.textContent=`${fmtDate(s.start)} → ${fmtDate(s.end)}`;
+ let dur=document.createElement("div");dur.style.marginTop="7px";let inp=document.createElement("input");inp.className="duration";inp.type="number";inp.min="1";inp.max="10080";inp.value=s.mins;inp.title="Duration in minutes";inp.setAttribute("aria-label",s.name+" duration in minutes");inp.onchange=()=>{s.mins=Math.max(1,Number(inp.value)||1);schedule();};dur.append("Duration (min) ",inp);
+ info.append(nm,timing,dur);
+ let right=document.createElement("div");right.className="right";let status=document.createElement("div");status.className="status";status.textContent=s.done?"Completed":s.startedAt?"Timer running":"Pending";
+ let count=document.createElement("div");count.className="countdown";count.textContent=s.startedAt&&!s.done?fmtDur((s.endsAt||Date.now())-Date.now()):"";
+ let controls=document.createElement("div");controls.className="timer-controls";
+ let start=document.createElement("button");start.className="primary";start.textContent=s.startedAt&&!s.done?"Restart timer":"Start timer";start.onclick=()=>{s.startedAt=Date.now();s.endsAt=Date.now()+s.mins*60000;s.done=false;renderSteps();};
+ let done=document.createElement("button");done.className="secondary";done.textContent=s.done?"Undo":"Mark done";done.onclick=()=>{s.done=!s.done;if(s.done){s.startedAt=null;s.endsAt=null;}renderSteps();renderStats();};
+ let skip=document.createElement("button");skip.className="secondary";skip.textContent="Clear timer";skip.onclick=()=>{s.startedAt=null;s.endsAt=null;renderSteps();};
+ controls.append(start,done,skip);right.append(status,count,controls);card.append(num,info,right);root.append(card);});renderStats();}
+function renderStats(){let complete=steps.filter(s=>s.done).length;$("progressBar").style.width=(complete/steps.length*100)+"%";let active=steps.slice(0,8).reduce((a,s)=>a+s.mins,0);$("activeTime").textContent=fmtDur(active*60000);}
+$("calculate").onclick=()=>{steps.forEach(s=>{s.done=false;s.startedAt=null;s.endsAt=null;});schedule();};
+$("useNow").onclick=()=>{$("startAt").value=dateVal(new Date());schedule();};
+$("reset").onclick=()=>{steps.forEach(s=>{s.done=false;s.startedAt=null;s.endsAt=null;});renderSteps();renderStats();};
+$("addIngredient").onclick=()=>{ingredients.push({name:"",amount:""});renderIngredients();};
+$("print").onclick=()=>window.print();
+$("bakeAt").addEventListener("change",()=>{$("startAt").value="";schedule();});
+
+// Save recipe, schedule and completion state locally on this device.
+const STORAGE_KEY = "sourdoughPlannerState_v1";
+function saveState(){
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      bakeAt:$("bakeAt").value, startAt:$("startAt").value, ambient:$("ambient").value,
+      ingredients, steps:steps.map(s=>({name:s.name,mins:s.mins,done:s.done}))
+    }));
+  } catch(e) {}
+}
+function loadState(){
+  try {
+    const raw=localStorage.getItem(STORAGE_KEY); if(!raw) return;
+    const data=JSON.parse(raw);
+    if(data.bakeAt) $("bakeAt").value=data.bakeAt;
+    if(data.startAt) $("startAt").value=data.startAt;
+    if(data.ambient) $("ambient").value=data.ambient;
+    if(Array.isArray(data.ingredients)) ingredients=data.ingredients;
+    if(Array.isArray(data.steps) && data.steps.length){
+      steps=data.steps.map((s,i)=>({name:s.name||("Stage "+(i+1)),mins:Math.max(1,Number(s.mins)||30),done:!!s.done,startedAt:null,remaining:null,endsAt:null}));
+    }
+  } catch(e) {}
+}
+loadState();
+
+renderIngredients();
+// Initial default target bake time from the spreadsheet; calculate the required start time.
+schedule();
+setInterval(()=>{document.querySelectorAll(".step").forEach((card,i)=>{let s=steps[i];let count=card.querySelector(".countdown");let status=card.querySelector(".status");if(s.startedAt&&!s.done&&count){let rem=s.endsAt-Date.now();count.textContent=rem>0?fmtDur(rem):"Time's up!";if(status)status.textContent=rem>0?"Timer running":"Timer finished";}});},1000);
+// Persist recipe edits and progress.
+["bakeAt","startAt","ambient"].forEach(id=>$(id).addEventListener("change",saveState));
+const oldRenderIngredients = renderIngredients;
+renderIngredients = function(){ oldRenderIngredients(); $("ingredients").querySelectorAll("input").forEach(inp=>inp.addEventListener("change",saveState)); saveState(); };
+const oldRenderSteps = renderSteps;
+renderSteps = function(){ oldRenderSteps(); saveState(); };
+const oldSchedule = schedule;
+schedule = function(){ oldSchedule(); saveState(); };
+$("addIngredient").addEventListener("click",saveState);
+$("calculate").addEventListener("click",saveState);
+$("reset").addEventListener("click",saveState);
+if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
+  window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(()=>{}));
+}
+
+</script>
+</body></html>
